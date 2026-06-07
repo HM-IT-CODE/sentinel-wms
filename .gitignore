@@ -1,0 +1,23 @@
+/target
+
+# Secretos y configuración local (NUNCA subir al repo público del hackathon)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+stdout.log
+stderr_sse.log
+
+# Herramientas locales (no van al repo)
+ngrok_bin/
+ngrok.zip
+
+# Notas internas de desarrollo (no van al repo público del hackatón)
+new.txt
+documentacion.md
+README_DESARROLLO.md
+README_GCP.md
+TODO_1.MD
+chat_ollama_mcp.js

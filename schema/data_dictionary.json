@@ -1,0 +1,317 @@
+{
+  "database": "WMS_SENTINEL_DEMO",
+  "engine": "SQL Server",
+  "erp": "SAINT-like (Spanish ERP) with WMS/Logistics module",
+  "description": "Bilingual data dictionary (ES -> EN) for the core WMS / inventory / sales tables. Used by the agent (Gemini) to reason over the database in English while querying the real Spanish object names.",
+  "naming_convention": "Physical names are in Spanish UPPERCASE. Use 'name_en' for human/agent reasoning, but ALWAYS query with the physical 'name'.",
+  "tables": [
+    {
+      "name": "ARTICULOS",
+      "name_en": "products",
+      "description_en": "Master catalog of products/items.",
+      "primary_key": ["ARTICULO"],
+      "columns": [
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(10)", "pk": true },
+        { "name": "DESCRIPCION", "name_en": "description", "type": "varchar(max)" },
+        { "name": "MARCA", "name_en": "brand_id", "type": "numeric" },
+        { "name": "UNIDAD", "name_en": "unit", "type": "varchar(5)" },
+        { "name": "CATEGORIA", "name_en": "category", "type": "varchar(2)" },
+        { "name": "STOCKMINIMO", "name_en": "min_stock", "type": "numeric" },
+        { "name": "REPOSICION", "name_en": "reorder_qty", "type": "numeric" },
+        { "name": "IVA", "name_en": "vat_rate", "type": "numeric" },
+        { "name": "CIF", "name_en": "cif_cost", "type": "numeric" },
+        { "name": "FECHACIF", "name_en": "cif_date", "type": "datetime2" },
+        { "name": "TIPO", "name_en": "type", "type": "varchar(1)" },
+        { "name": "GARANTIA", "name_en": "warranty_months", "type": "numeric" },
+        { "name": "DESCUENTO", "name_en": "discount", "type": "numeric" },
+        { "name": "EMPAQUE", "name_en": "packaging", "type": "numeric" },
+        { "name": "EAN", "name_en": "ean_barcode", "type": "varchar(13)" },
+        { "name": "GRUPO", "name_en": "group_id", "type": "numeric" },
+        { "name": "SUBGRUPO", "name_en": "subgroup_id", "type": "numeric" },
+        { "name": "CBM", "name_en": "cubic_meters", "type": "numeric" },
+        { "name": "VENTA", "name_en": "sale_price", "type": "numeric" },
+        { "name": "MODELO", "name_en": "model", "type": "varchar(50)" },
+        { "name": "UBICACION", "name_en": "location", "type": "varchar(250)" },
+        { "name": "EQUIVALENTE", "name_en": "equivalent_code", "type": "varchar(10)" },
+        { "name": "NROPARTES", "name_en": "part_number", "type": "varchar(10)" },
+        { "name": "PUNTOS", "name_en": "loyalty_points", "type": "decimal" },
+        { "name": "USUARIO", "name_en": "user", "type": "varchar(10)" },
+        { "name": "FECHA", "name_en": "created_date", "type": "datetime2" },
+        { "name": "FECHAACTUAL", "name_en": "updated_date", "type": "datetime2" },
+        { "name": "MODIFICACION", "name_en": "modified_at", "type": "datetime" },
+        { "name": "NROUNICO", "name_en": "unique_id", "type": "int" }
+      ]
+    },
+    {
+      "name": "BODEGAS",
+      "name_en": "stock_by_warehouse",
+      "description_en": "On-hand stock of each product per warehouse/bin. This is the live inventory table.",
+      "primary_key": ["ARTICULO", "BODEGA"],
+      "columns": [
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(10)", "pk": true, "fk": "ARTICULOS.ARTICULO" },
+        { "name": "BODEGA", "name_en": "warehouse_id", "type": "int", "pk": true },
+        { "name": "EXISTENCIA", "name_en": "on_hand_qty", "type": "numeric" }
+      ]
+    },
+    {
+      "name": "ARTICULOSUBICACIONES",
+      "name_en": "product_locations",
+      "description_en": "Bin/rack locations where each product is physically stored (warehouse slotting).",
+      "primary_key": ["ARTICULO", "UBICACION"],
+      "columns": [
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(50)", "fk": "ARTICULOS.ARTICULO" },
+        { "name": "UBICACION", "name_en": "location_code", "type": "varchar(50)" }
+      ]
+    },
+    {
+      "name": "KARDEX",
+      "name_en": "inventory_ledger",
+      "description_en": "Daily inventory movement ledger (kardex) per product: balance, entries, internal moves, invoiced, outputs, assemblies.",
+      "primary_key": ["FECHA", "ARTICULO"],
+      "columns": [
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "pk": true },
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(10)", "pk": true, "fk": "ARTICULOS.ARTICULO" },
+        { "name": "SALDO", "name_en": "balance", "type": "numeric" },
+        { "name": "CANT_ENT", "name_en": "qty_in", "type": "numeric" },
+        { "name": "CANT_IN", "name_en": "qty_internal", "type": "numeric" },
+        { "name": "CANT_FACT", "name_en": "qty_invoiced", "type": "numeric" },
+        { "name": "CANT_OUT", "name_en": "qty_out", "type": "numeric" },
+        { "name": "CANT_ENS", "name_en": "qty_assembled", "type": "numeric" }
+      ]
+    },
+    {
+      "name": "CATEGORIAS",
+      "name_en": "categories",
+      "description_en": "Product categories.",
+      "primary_key": ["CODIGO"],
+      "columns": [
+        { "name": "CODIGO", "name_en": "code", "type": "varchar(10)" },
+        { "name": "DESCRIPCION", "name_en": "description", "type": "varchar(25)" },
+        { "name": "TIPO", "name_en": "type", "type": "varchar(1)" }
+      ]
+    },
+    {
+      "name": "CODIGOUNIDADES",
+      "name_en": "unit_codes",
+      "description_en": "Units of measure and their conversion value.",
+      "primary_key": ["CODIGO"],
+      "columns": [
+        { "name": "CODIGO", "name_en": "code", "type": "varchar(5)", "pk": true },
+        { "name": "DESCRIPCION", "name_en": "description", "type": "varchar(15)" },
+        { "name": "VALOR", "name_en": "conversion_value", "type": "numeric" }
+      ]
+    },
+    {
+      "name": "CLIENTES",
+      "name_en": "customers",
+      "description_en": "Customer master (only the most relevant columns translated; table has many extra Sx/Cx/Tx custom fields).",
+      "primary_key": ["CLIENTE"],
+      "columns": [
+        { "name": "CLIENTE", "name_en": "customer_code", "type": "varchar(20)", "pk": true },
+        { "name": "DESCRIPCION", "name_en": "name", "type": "varchar(70)" },
+        { "name": "DIRECCION", "name_en": "address", "type": "varchar(max)" },
+        { "name": "CIUDAD", "name_en": "city", "type": "varchar(35)" },
+        { "name": "ESTADO", "name_en": "state_id", "type": "numeric" },
+        { "name": "TELEFONO", "name_en": "phone", "type": "varchar(50)" },
+        { "name": "CELULAR", "name_en": "mobile", "type": "varchar(50)" },
+        { "name": "EMAIL", "name_en": "email", "type": "varchar(80)" },
+        { "name": "CEDULA", "name_en": "tax_id", "type": "varchar(20)" },
+        { "name": "VENDEDOR", "name_en": "salesperson", "type": "varchar(20)" },
+        { "name": "CUPO", "name_en": "credit_limit", "type": "numeric" },
+        { "name": "PLAZO", "name_en": "credit_days", "type": "numeric" },
+        { "name": "ZONA", "name_en": "zone_id", "type": "numeric" },
+        { "name": "DIRDESPACHO", "name_en": "shipping_address", "type": "varchar(max)" },
+        { "name": "ANALISTA", "name_en": "analyst", "type": "varchar(50)" },
+        { "name": "NROUNICO", "name_en": "unique_id", "type": "int" }
+      ]
+    },
+    {
+      "name": "SUCURSAL",
+      "name_en": "customer_branches",
+      "description_en": "Customer delivery branches/sites.",
+      "primary_key": ["SUCURSAL", "CLIENTE"],
+      "columns": [
+        { "name": "SUCURSAL", "name_en": "branch_code", "type": "varchar(10)", "pk": true },
+        { "name": "CLIENTE", "name_en": "customer_code", "type": "varchar(20)", "pk": true, "fk": "CLIENTES.CLIENTE" },
+        { "name": "ESTADO", "name_en": "state_id", "type": "numeric" },
+        { "name": "CIUDAD", "name_en": "city", "type": "varchar(50)" },
+        { "name": "TELEFONO", "name_en": "phone", "type": "varchar(50)" },
+        { "name": "DIRECCION", "name_en": "address", "type": "varchar(250)" },
+        { "name": "HORARIO", "name_en": "schedule", "type": "varchar(max)" }
+      ]
+    },
+    {
+      "name": "FACTURAS",
+      "name_en": "invoices",
+      "description_en": "Invoice / sales document headers.",
+      "primary_key": ["FECHA", "TIPO_DOC", "NUMERO"],
+      "columns": [
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "pk": true },
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "pk": true },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "int", "pk": true },
+        { "name": "CLIENTE", "name_en": "customer_code", "type": "varchar(20)", "fk": "CLIENTES.CLIENTE" },
+        { "name": "PLAZO", "name_en": "credit_days", "type": "numeric" },
+        { "name": "IVA", "name_en": "vat_amount", "type": "numeric" },
+        { "name": "TOTAL", "name_en": "total", "type": "numeric" },
+        { "name": "BODEGA", "name_en": "warehouse_id", "type": "numeric" },
+        { "name": "MONEDA", "name_en": "currency", "type": "varchar(10)" },
+        { "name": "CAMBIO", "name_en": "exchange_rate", "type": "numeric" },
+        { "name": "VENDEDOR", "name_en": "salesperson", "type": "varchar(10)" },
+        { "name": "BULTOS", "name_en": "packages", "type": "numeric" },
+        { "name": "DESPACHADO", "name_en": "dispatched_flag", "type": "decimal" },
+        { "name": "FECHA_DES", "name_en": "dispatch_date", "type": "datetime" },
+        { "name": "ESTATUS", "name_en": "status", "type": "varchar(50)" },
+        { "name": "ESTADO", "name_en": "state", "type": "varchar(50)" },
+        { "name": "GUIA", "name_en": "tracking_guide", "type": "varchar(50)" },
+        { "name": "FORMAPAGO", "name_en": "payment_method", "type": "varchar(10)" },
+        { "name": "NROUNICO", "name_en": "unique_id", "type": "int" }
+      ]
+    },
+    {
+      "name": "FACTURASMOV",
+      "name_en": "invoice_lines",
+      "description_en": "Invoice line items (products sold per invoice).",
+      "primary_key": ["FECHA", "TIPO_DOC", "NUMERO", "ARTICULO"],
+      "columns": [
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "fk": "FACTURAS.FECHA" },
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "fk": "FACTURAS.TIPO_DOC" },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "int", "fk": "FACTURAS.NUMERO" },
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(10)", "fk": "ARTICULOS.ARTICULO" },
+        { "name": "CANTIDAD", "name_en": "quantity", "type": "numeric" },
+        { "name": "VALOR", "name_en": "unit_value", "type": "numeric" },
+        { "name": "COSTO", "name_en": "cost", "type": "numeric" },
+        { "name": "PRECIO", "name_en": "price", "type": "numeric" },
+        { "name": "BODEGA", "name_en": "warehouse_id", "type": "numeric" },
+        { "name": "DESPACHO", "name_en": "dispatched_qty", "type": "numeric" }
+      ]
+    },
+    {
+      "name": "DESPACHOS",
+      "name_en": "dispatches",
+      "description_en": "Dispatch / shipment document headers (goods leaving the warehouse).",
+      "primary_key": ["TIPO_DOC", "FECHA", "NUMERO"],
+      "columns": [
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "pk": true },
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "pk": true },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "numeric", "pk": true },
+        { "name": "DOCASOC", "name_en": "related_doc_type", "type": "varchar(8)" },
+        { "name": "FECHAASOC", "name_en": "related_doc_date", "type": "datetime2" },
+        { "name": "NUMEROASOC", "name_en": "related_doc_number", "type": "numeric" },
+        { "name": "CLIENTE", "name_en": "customer_code", "type": "varchar(20)", "fk": "CLIENTES.CLIENTE" },
+        { "name": "USUARIO", "name_en": "user", "type": "varchar(8)" },
+        { "name": "BULTOS", "name_en": "packages", "type": "numeric" },
+        { "name": "PESO", "name_en": "weight", "type": "numeric" },
+        { "name": "CAMARA", "name_en": "loading_dock", "type": "numeric" },
+        { "name": "NRO_ARTICULOS", "name_en": "item_count", "type": "numeric" },
+        { "name": "NROUNICO", "name_en": "unique_id", "type": "int" }
+      ]
+    },
+    {
+      "name": "DESPACHOSMOV",
+      "name_en": "dispatch_lines",
+      "description_en": "Dispatch line items, including serial numbers for traceability.",
+      "primary_key": ["TIPO_DOC", "FECHA", "NUMERO", "ARTICULO", "SERIAL"],
+      "columns": [
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "fk": "DESPACHOS.TIPO_DOC" },
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "fk": "DESPACHOS.FECHA" },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "numeric", "fk": "DESPACHOS.NUMERO" },
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(10)", "fk": "ARTICULOS.ARTICULO" },
+        { "name": "CANTIDAD", "name_en": "quantity", "type": "numeric" },
+        { "name": "SERIAL", "name_en": "serial_number", "type": "varchar(40)" },
+        { "name": "BODEGA", "name_en": "warehouse_id", "type": "numeric" },
+        { "name": "IDCAJA", "name_en": "box_id", "type": "varchar(8)" }
+      ]
+    },
+    {
+      "name": "LOGISTICA",
+      "name_en": "logistics",
+      "description_en": "Delivery / logistics route document headers.",
+      "primary_key": ["TIPO_DOC", "FECHA", "NUMERO"],
+      "columns": [
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "pk": true },
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "pk": true },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "int", "pk": true },
+        { "name": "CLIENTE", "name_en": "customer_code", "type": "varchar(20)", "fk": "CLIENTES.CLIENTE" },
+        { "name": "USUARIO", "name_en": "user", "type": "varchar(10)" },
+        { "name": "CAMARA", "name_en": "loading_dock", "type": "int" },
+        { "name": "ZONA", "name_en": "zone_id", "type": "int" },
+        { "name": "TIPO_ENVIO", "name_en": "shipping_type", "type": "bigint" },
+        { "name": "VEHICULO", "name_en": "vehicle_code", "type": "varchar(20)", "fk": "VEHICULOS" },
+        { "name": "FLETE", "name_en": "freight_cost", "type": "numeric" },
+        { "name": "TOTAL", "name_en": "total", "type": "numeric" },
+        { "name": "GUIA", "name_en": "tracking_guide", "type": "varchar(50)" },
+        { "name": "FECHA_ENTREGA", "name_en": "delivery_date", "type": "varchar(50)" }
+      ]
+    },
+    {
+      "name": "LOGISTICAMOV",
+      "name_en": "logistics_lines",
+      "description_en": "Logistics document line items, linking to the related sales/dispatch documents.",
+      "primary_key": ["TIPO_DOC", "FECHA", "NUMERO", "TIPO_ASOC", "FECHA_ASOC", "NUMERO_ASOC"],
+      "columns": [
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "fk": "LOGISTICA.TIPO_DOC" },
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "fk": "LOGISTICA.FECHA" },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "int", "fk": "LOGISTICA.NUMERO" },
+        { "name": "TIPO_ASOC", "name_en": "related_doc_type", "type": "varchar(8)" },
+        { "name": "FECHA_ASOC", "name_en": "related_doc_date", "type": "datetime2" },
+        { "name": "NUMERO_ASOC", "name_en": "related_doc_number", "type": "int" },
+        { "name": "BULTOS", "name_en": "packages", "type": "int" },
+        { "name": "TOTAL", "name_en": "total", "type": "numeric" },
+        { "name": "ENTREGA", "name_en": "delivery_status", "type": "int" }
+      ]
+    },
+    {
+      "name": "LOGISTICASERIALES",
+      "name_en": "logistics_serials",
+      "description_en": "Serial numbers shipped per logistics document (item-level traceability).",
+      "primary_key": ["TIPO_DOC", "FECHA", "NUMERO", "ARTICULO", "SERIAL"],
+      "columns": [
+        { "name": "TIPO_DOC", "name_en": "doc_type", "type": "varchar(8)", "fk": "LOGISTICA.TIPO_DOC" },
+        { "name": "FECHA", "name_en": "date", "type": "datetime2", "fk": "LOGISTICA.FECHA" },
+        { "name": "NUMERO", "name_en": "doc_number", "type": "int", "fk": "LOGISTICA.NUMERO" },
+        { "name": "ARTICULO", "name_en": "product_code", "type": "varchar(10)", "fk": "ARTICULOS.ARTICULO" },
+        { "name": "BODEGA", "name_en": "warehouse_id", "type": "int" },
+        { "name": "CANTIDAD", "name_en": "quantity", "type": "int" },
+        { "name": "SERIAL", "name_en": "serial_number", "type": "varchar(40)" }
+      ]
+    }
+  ],
+  "relationships": [
+    "BODEGAS.ARTICULO            -> ARTICULOS.ARTICULO        (stock belongs to a product)",
+    "ARTICULOSUBICACIONES.ARTICULO -> ARTICULOS.ARTICULO      (bin location of a product)",
+    "KARDEX.ARTICULO             -> ARTICULOS.ARTICULO        (daily ledger per product)",
+    "FACTURAS.CLIENTE            -> CLIENTES.CLIENTE          (invoice belongs to a customer)",
+    "FACTURASMOV (FECHA,TIPO_DOC,NUMERO) -> FACTURAS          (invoice line -> invoice header)",
+    "FACTURASMOV.ARTICULO        -> ARTICULOS.ARTICULO        (invoice line -> product)",
+    "DESPACHOSMOV (TIPO_DOC,FECHA,NUMERO) -> DESPACHOS        (dispatch line -> dispatch header)",
+    "DESPACHOS.CLIENTE           -> CLIENTES.CLIENTE          (dispatch -> customer)",
+    "LOGISTICAMOV (TIPO_DOC,FECHA,NUMERO) -> LOGISTICA        (logistics line -> logistics header)",
+    "LOGISTICASERIALES (TIPO_DOC,FECHA,NUMERO) -> LOGISTICA   (serials -> logistics header)",
+    "SUCURSAL.CLIENTE            -> CLIENTES.CLIENTE          (branch -> customer)"
+  ],
+  "glossary_es_en": {
+    "ARTICULO": "product / item code",
+    "BODEGA": "warehouse / bin",
+    "EXISTENCIA": "on-hand quantity",
+    "DESPACHO": "dispatch / shipment",
+    "FACTURA": "invoice",
+    "KARDEX": "inventory ledger (stock movement)",
+    "CLIENTE": "customer",
+    "SUCURSAL": "branch",
+    "LOGISTICA": "logistics / delivery",
+    "SERIAL": "serial number",
+    "UBICACION": "location / bin",
+    "CANTIDAD": "quantity",
+    "SALDO": "balance",
+    "FECHA": "date",
+    "USUARIO": "user",
+    "VENDEDOR": "salesperson",
+    "MONEDA": "currency",
+    "CAMBIO": "exchange rate",
+    "GUIA": "tracking guide / waybill",
+    "FLETE": "freight cost",
+    "BULTOS": "packages",
+    "TIPO_DOC": "document type",
+    "NUMERO": "document number"
+  }
+}

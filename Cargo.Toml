@@ -1,0 +1,41 @@
+[package]
+name = "mcp-sql-sentinel"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+# DRIVER PRINCIPAL: TIBERIUS (Motor nativo MSSQL, 100% Rust, soporta todos los locales)
+# Alineamos versión con bb8-tiberius (que usa 0.10)
+tiberius = { version = "0.12", features = ["chrono", "rust_decimal", "time"] }
+# Connection Pool para Tiberius
+bb8 = "0.8"
+bb8-tiberius = "0.14"
+# Utilidades necesarias para Tiberius
+futures = "0.3"
+futures-util = "0.3"
+rust_decimal = "1.0"
+rust_decimal_macros = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2.5"
+
+# Framework Web
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["compat"] } # Necesario para compatibilidad Tokio-Tiberius
+axum = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dotenvy = "0.15"
+tower-http = { version = "0.4", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Fivetran / Async
+reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+async-trait = "0.1"
+thiserror = "1.0"
+anyhow = "1.0"
+base64 = "0.21"
+
+# Mantenemos sqlx básico SOLO por si alguna vez queremos volver a Postgres
+sqlx = { version = "0.6.3", features = [ "runtime-tokio-native-tls", "any", "postgres", "macros" ], optional = true }

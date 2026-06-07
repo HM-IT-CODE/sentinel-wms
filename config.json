@@ -1,0 +1,15 @@
+{
+  "allowed_objects": [
+    "products",
+    "customers",
+    "invoices",
+    "invoice_lines",
+    "stock_by_warehouse",
+    "inventory_ledger",
+    "dispatches",
+    "dispatch_lines",
+    "logistics",
+    "categories",
+    "warehouses"
+  ]
+}
